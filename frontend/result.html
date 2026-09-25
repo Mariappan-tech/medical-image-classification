@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PneumoScan AI — Results</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body class="app-page">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon-sm">
+        <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" fill="url(#sg2)"/><path d="M10 16a6 6 0 0 1 12 0" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="16" r="2.5" fill="#fff"/><defs><linearGradient id="sg2" x1="0" y1="0" x2="32" y2="32"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#06b6d4"/></linearGradient></defs></svg>
+      </div>
+      <span>PneumoScan</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="upload.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span>Upload</span>
+      </a>
+      <a href="result.html" class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <span>Results</span>
+      </a>
+      <a href="#" class="nav-item" id="historyBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>History</span>
+        <span class="badge hidden" id="hist-badge">0</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="user-avatar">U</div>
+        <div class="user-details">
+          <span class="user-name" id="sidebar-username">User</span>
+          <span class="user-role" id="sidebar-role">Radiologist</span>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="logout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <a href="upload.html" class="back-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          Back to Upload
+        </a>
+        <h2>Diagnosis Report</h2>
+        <p id="result-subtitle">AI-powered pneumonia classification result</p>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-outline" onclick="window.print()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print
+        </button>
+      </div>
+    </header>
+
+    <!-- No result fallback -->
+    <div class="no-result-state hidden" id="noResultState">
+      <svg viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="38" fill="#f1f5f9"/><path d="M26 54 Q40 26 54 54" stroke="#94a3b8" stroke-width="2" fill="none"/><circle cx="40" cy="36" r="8" stroke="#94a3b8" stroke-width="2" fill="none"/></svg>
+      <h3>No result to display</h3>
+      <p>Upload a chest X-ray image first to see the analysis here.</p>
+      <a href="upload.html" class="btn-primary" style="margin-top:1rem;display:inline-flex">Go to Upload</a>
+    </div>
+
+    <!-- Result content (hidden until data loaded) -->
+    <div id="resultContent" class="hidden">
+
+      <!-- Verdict banner -->
+      <div class="verdict-banner" id="verdictBanner">
+        <div class="verdict-icon" id="verdictIcon"></div>
+        <div class="verdict-text">
+          <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+            <h1 id="verdictTitle">—</h1>
+            <span class="risk-pill" id="riskPill">—</span>
+          </div>
+          <p id="verdictSub">—</p>
+        </div>
+        <div class="verdict-conf">
+          <div class="conf-ring">
+            <svg viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="10"/>
+              <circle cx="60" cy="60" r="52" fill="none" stroke="white" stroke-width="10"
+                stroke-dasharray="326.7" stroke-dashoffset="326.7"
+                stroke-linecap="round" transform="rotate(-90 60 60)"
+                id="confCircle"/>
+            </svg>
+            <div class="conf-center">
+              <span class="conf-val" id="confVal">0%</span>
+              <span class="conf-lbl">Confidence</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result cards grid -->
+      <div class="result-grid">
+
+        <div class="card scan-preview-card" id="scanPreviewCard">
+          <h3 class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            Analyzed Chest X-Ray
+          </h3>
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0.75rem;min-height:210px;background:var(--slate-50);border-radius:12px;border:1px solid var(--slate-200);overflow:hidden">
+            <img id="resultScanImg" src="" alt="Uploaded X-Ray" style="max-height:230px;max-width:100%;border-radius:8px;object-fit:contain;box-shadow:0 4px 12px rgba(0,0,0,0.08)"/>
+            <span id="noScanImgText" class="hidden" style="color:var(--slate-400);font-size:0.85rem">Scan preview not available</span>
+          </div>
+        </div>
+
+        <div class="card result-detail-card">
+          <h3 class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Prediction Details
+          </h3>
+          <div class="detail-list" id="detailList"></div>
+        </div>
+
+        <div class="card conf-breakdown-card">
+          <h3 class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Confidence Breakdown
+          </h3>
+          <div class="conf-bars" id="confBars"></div>
+        </div>
+
+        <div class="card ai-rec-card" id="aiRecCard">
+          <h3 class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+            AI Recommendation
+          </h3>
+          <div class="ai-rec-body" id="aiRecBody"></div>
+        </div>
+
+        <div class="card interp-card">
+          <h3 class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Interpretation Guide
+          </h3>
+          <div class="interp-list">
+            <div class="interp-item">
+              <div class="interp-dot" style="background:#10b981"></div>
+              <div><strong>Normal — Low Risk</strong><p>No consolidation or opacification. Lungs appear clear.</p></div>
+            </div>
+            <div class="interp-item">
+              <div class="interp-dot" style="background:#f59e0b"></div>
+              <div><strong>Pneumonia — Medium Risk</strong><p>Possible pneumonia patterns detected. Physician review advised.</p></div>
+            </div>
+            <div class="interp-item">
+              <div class="interp-dot" style="background:#ef4444"></div>
+              <div><strong>Pneumonia — High / Critical</strong><p>Strong pneumonia evidence. Immediate clinical attention required.</p></div>
+            </div>
+          </div>
+          <div class="disclaimer">⚠ AI analysis is for informational purposes only. Always consult a qualified radiologist for medical diagnosis.</div>
+        </div>
+
+      </div>
+
+      <div class="result-actions">
+        <a href="upload.html" class="btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Analyze Another Image
+        </a>
+        <button class="btn-outline" onclick="openHistory()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          View History
+        </button>
+      </div>
+
+    </div><!-- end resultContent -->
+
+  </main>
+
+  <!-- History Drawer -->
+  <div class="drawer-overlay hidden" id="drawerOverlay" onclick="closeHistory()"></div>
+  <aside class="history-drawer hidden" id="historyDrawer">
+    <div class="drawer-header">
+      <h3>Prediction History <span id="drawer-count" style="font-size:.8rem;font-weight:500;color:#64748b"></span></h3>
+      <button onclick="closeHistory()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="drawer-body" id="historyList"></div>
+    <div class="drawer-footer" style="display:flex;gap:.75rem">
+      <button class="btn-outline" style="flex:1" onclick="clearHistory()">🗑 Clear All</button>
+    </div>
+  </aside>
+
+  <script>
+    // ── Auth guard (resilient) ────────────────────────────────────
+    if (!localStorage.getItem('access_token') && !localStorage.getItem('last_prediction')) {
+      window.location.href = 'login.html';
+    }
+
+    const username = localStorage.getItem('username') || 'User';
+    document.getElementById('sidebar-username').textContent = username;
+    document.getElementById('user-avatar').textContent = username.charAt(0).toUpperCase();
+
+    const accs = JSON.parse(localStorage.getItem('accounts') || '{}');
+    if (accs[username]) {
+      document.getElementById('sidebar-role').textContent = accs[username].role || 'User';
+    }
+
+    syncHistoryBadge();
+
+    // ── Load and render result ─────────────────────────────────────
+    const raw = localStorage.getItem('last_prediction');
+    if (!raw) {
+      document.getElementById('noResultState').classList.remove('hidden');
+    } else {
+      try {
+        const parsed = JSON.parse(raw);
+        document.getElementById('resultContent').classList.remove('hidden');
+        renderResult(parsed);
+      } catch (err) {
+        console.error('Invalid last_prediction payload:', err);
+        document.getElementById('noResultState').classList.remove('hidden');
+      }
+    }
+
+    function renderResult(data) {
+      if (!data || typeof data !== 'object') {
+        document.getElementById('noResultState').classList.remove('hidden');
+        return;
+      }
+
+      // ── Scan image preview ──────────────────────────────────────
+      const cachedImg = localStorage.getItem('last_uploaded_image');
+      const imgEl = document.getElementById('resultScanImg');
+      const noImgEl = document.getElementById('noScanImgText');
+      if (cachedImg && imgEl) {
+        imgEl.src = cachedImg;
+        imgEl.classList.remove('hidden');
+        if (noImgEl) noImgEl.classList.add('hidden');
+      } else if (imgEl && noImgEl) {
+        imgEl.classList.add('hidden');
+        noImgEl.classList.remove('hidden');
+      }
+
+      // ── 1. Resolve probabilities correctly ─────────────────────
+      const predictedClass = data.predicted_class || 'Normal';
+      const isPneumonia    = predictedClass === 'Pneumonia';
+      const safeProbability = typeof data.probability === 'number' ? data.probability
+        : (typeof data.mean_prob === 'number' ? data.mean_prob : (isPneumonia ? (data.confidence ?? 0.5) : 1 - (data.confidence ?? 0.5)));
+      const rawProb = Number.isFinite(safeProbability) ? safeProbability : (isPneumonia ? 0.9 : 0.1);
+      const pneumoniaProb = rawProb;
+      const normalProb = 1 - rawProb;
+      const conf = Number.isFinite(data.confidence) ? data.confidence : Math.max(0, isPneumonia ? rawProb : 1 - rawProb);
+      const confPct = Math.round(conf * 100);
+
+      // ── 2. Subtitle ─────────────────────────────────────────────
+      if (data.filename) {
+        document.getElementById('result-subtitle').textContent = '📄 ' + data.filename;
+      }
+
+      // ── 3. Risk level ────────────────────────────────────────────
+      const risk = getRisk(isPneumonia, conf);
+      const riskPill = document.getElementById('riskPill');
+      riskPill.textContent  = risk.label;
+      riskPill.className    = 'risk-pill risk-' + risk.level;
+
+      // ── 4. Verdict banner ─────────────────────────────────────────
+      const banner = document.getElementById('verdictBanner');
+      banner.className = 'verdict-banner ' + (isPneumonia ? 'verdict-pneumonia' : 'verdict-normal');
+
+      document.getElementById('verdictIcon').innerHTML = isPneumonia
+        ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`
+        : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
+
+      document.getElementById('verdictTitle').textContent = predictedClass;
+      document.getElementById('verdictSub').textContent = isPneumonia
+        ? 'Patterns consistent with pneumonia detected in this X-ray'
+        : 'No significant findings — lungs appear clear';
+
+      // ── 5. Confidence ring animation ──────────────────────────────
+      const circumference = 326.7;
+      const offset = circumference - (confPct / 100) * circumference;
+      setTimeout(() => {
+        const circle = document.getElementById('confCircle');
+        circle.style.transition      = 'stroke-dashoffset 1.2s ease-out';
+        circle.style.strokeDashoffset = offset;
+      }, 120);
+
+      let cur = 0;
+      const timer = setInterval(() => {
+        cur = Math.min(cur + Math.ceil(confPct / 40), confPct);
+        document.getElementById('confVal').textContent = cur + '%';
+        if (cur >= confPct) clearInterval(timer);
+      }, 30);
+
+      // ── 6. Detail list ────────────────────────────────────────────
+      const details = [
+        { icon: '🔖', label: 'Prediction ID',    value: (data.id || data.prediction_id || 'demo').toString().substring(0,14) + '…' },
+        { icon: isPneumonia ? '⚠️' : '✅', label: 'Predicted Class', value: predictedClass },
+        { icon: '📊', label: 'Confidence',        value: (conf * 100).toFixed(2) + '%' },
+        { icon: '🧪', label: 'P(Pneumonia)',      value: (pneumoniaProb * 100).toFixed(2) + '%' },
+        { icon: '🧪', label: 'P(Normal)',         value: (normalProb * 100).toFixed(2) + '%' },
+        { icon: '⚙️', label: 'Analysis Mode',    value: (data.mode || 'standard').charAt(0).toUpperCase() + (data.mode || 'standard').slice(1) },
+        { icon: '⏱️', label: 'Inference Time',   value: (data.inference_time_ms || 0).toFixed(1) + ' ms' },
+        { icon: '📅', label: 'Analyzed At',       value: data.timestamp ? new Date(data.timestamp).toLocaleString() : new Date().toLocaleString() },
+      ];
+      if (data.uncertainty_std) {
+        details.push({ icon: '📉', label: 'Uncertainty (σ)', value: (data.uncertainty_std * 100).toFixed(2) + '%' });
+      }
+
+      document.getElementById('detailList').innerHTML = details.map(d => `
+        <div class="detail-row">
+          <span class="detail-icon">${d.icon}</span>
+          <span class="detail-label">${d.label}</span>
+          <span class="detail-value">${d.value}</span>
+        </div>
+      `).join('');
+
+      // ── 7. Confidence bars (FIXED) ────────────────────────────────
+      // Normal bar  = normalProb    (= 1 - rawProb)
+      // Pneumonia bar = pneumoniaProb (= rawProb)
+      // Both add up to 100% ✓
+      const nPct = (normalProb * 100).toFixed(1);
+      const pPct = (pneumoniaProb * 100).toFixed(1);
+
+      document.getElementById('confBars').innerHTML = `
+        <div class="conf-bar-item">
+          <div class="bar-header">
+            <span class="bar-label normal-label">✅ Normal</span>
+            <span class="bar-pct">${nPct}%</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill normal-fill" style="width:0" data-target="${nPct}"></div>
+          </div>
+        </div>
+        <div class="conf-bar-item" style="margin-top:1.1rem">
+          <div class="bar-header">
+            <span class="bar-label pneumonia-label">⚠️ Pneumonia</span>
+            <span class="bar-pct">${pPct}%</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill pneumonia-fill" style="width:0" data-target="${pPct}"></div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:1rem;font-size:.72rem;color:#94a3b8;font-weight:600">
+          <span>0%</span><span>50%</span><span>100%</span>
+        </div>
+      `;
+
+      setTimeout(() => {
+        document.querySelectorAll('.bar-fill').forEach(bar => {
+          bar.style.transition = 'width 1s ease-out';
+          bar.style.width      = bar.dataset.target + '%';
+        });
+      }, 250);
+
+      // ── 8. AI Recommendation ──────────────────────────────────────
+      const rec = getAIRecommendation(isPneumonia, conf, data);
+      document.getElementById('aiRecCard').className = 'card ai-rec-card ' + (isPneumonia ? 'rec-urgent' : 'rec-ok');
+      document.getElementById('aiRecBody').innerHTML = `
+        <div class="rec-priority ${rec.priority}"><span>${rec.priorityLabel}</span></div>
+        <h4 class="rec-headline">${rec.headline}</h4>
+        <ul class="rec-list">
+          ${rec.points.map(p => `<li><span class="rec-bullet">→</span>${p}</li>`).join('')}
+        </ul>
+        <div class="rec-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          ${rec.note}
+        </div>
+      `;
+
+    }
+
+    // ── Risk level helper ─────────────────────────────────────────
+    function getRisk(isPneumonia, conf) {
+      if (isPneumonia && conf >= 0.90) return { level: 'critical', label: '🔴 Critical Risk' };
+      if (isPneumonia && conf >= 0.75) return { level: 'high',     label: '🟠 High Risk' };
+      if (isPneumonia)                 return { level: 'medium',   label: '🟡 Medium Risk' };
+      if (conf >= 0.85)                return { level: 'low',      label: '🟢 Low Risk' };
+      return                                  { level: 'review',   label: '🟡 Needs Review' };
+    }
+
+    function getRiskLabel(h) {
+      const risk = getRisk(h.predicted_class === 'Pneumonia', h.confidence);
+      return risk.label;
+    }
+
+    // ── AI Recommendation engine ──────────────────────────────────
+    function getAIRecommendation(isPneumonia, conf, data) {
+      if (isPneumonia && conf >= 0.90) {
+        return {
+          priority: 'priority-high',
+          priorityLabel: '🔴 CRITICAL — Immediate attention required',
+          headline: 'Strong evidence of Pneumonia detected',
+          points: [
+            'Consult a pulmonologist or ED physician immediately.',
+            'Order CBC, CRP, procalcitonin to assess infection severity.',
+            'Consider sputum culture or bronchoalveolar lavage (BAL).',
+            'Monitor SpO₂ and respiratory rate continuously.',
+            'Initiate empirical antibiotic therapy per local protocol if indicated.',
+            'Chest CT recommended for detailed structural assessment.',
+          ],
+          note: 'Confidence ≥ 90% — Model is highly confident. Clinical correlation remains mandatory.',
+        };
+      }
+      if (isPneumonia && conf >= 0.75) {
+        return {
+          priority: 'priority-med',
+          priorityLabel: '🟠 HIGH PRIORITY — Review within 24 hours',
+          headline: 'Probable Pneumonia — Physician review recommended',
+          points: [
+            'Schedule clinical review within 24 hours.',
+            'Obtain full blood count and inflammatory markers.',
+            'Review patient history for recent respiratory symptoms.',
+            'Consider follow-up X-ray in 48–72 hours if symptoms persist.',
+            'Ensure adequate hydration and monitor oxygen levels.',
+          ],
+          note: 'Confidence 75–89% — Moderate certainty. Physician judgment should guide treatment.',
+        };
+      }
+      if (isPneumonia) {
+        return {
+          priority: 'priority-low',
+          priorityLabel: '🟡 LOW CONFIDENCE — Radiologist review needed',
+          headline: 'Possible Pneumonia — Inconclusive result',
+          points: [
+            'Confidence < 75% — result is not definitive.',
+            'Manual radiologist review is strongly recommended.',
+            'Consider repeating X-ray with improved positioning.',
+            'Correlate with clinical symptoms and physical examination.',
+            'Lab tests (CBC, CRP) may provide additional clarity.',
+          ],
+          note: 'Low confidence — Do not treat based on this result alone.',
+        };
+      }
+      if (conf >= 0.85) {
+        return {
+          priority: 'priority-clear',
+          priorityLabel: '🟢 LOW RISK — No significant findings',
+          headline: 'Lungs appear normal — No Pneumonia detected',
+          points: [
+            'No consolidation, opacity, or pleural effusion detected.',
+            'Cardiothoracic ratio appears within normal limits.',
+            'Routine follow-up per standard clinical protocol.',
+            'If respiratory symptoms persist, consider CT chest.',
+            'Maintain respiratory hygiene and keep vaccinations up to date.',
+          ],
+          note: 'High-confidence Normal finding. Routine monitoring recommended.',
+        };
+      }
+      return {
+        priority: 'priority-low',
+        priorityLabel: '🟡 BORDERLINE — Clinical correlation needed',
+        headline: 'Likely Normal — Low-confidence result',
+        points: [
+          'Model confidence for Normal is below 85%.',
+          'Clinical correlation is recommended before clearing.',
+          'If symptomatic, proceed with further diagnostic testing.',
+          'Consider physician review for final determination.',
+        ],
+        note: 'Borderline confidence. Consult a clinician.',
+      };
+    }
+
+    // ── History drawer ─────────────────────────────────────────────
+    document.getElementById('historyBtn').addEventListener('click', e => {
+      e.preventDefault(); openHistory();
+    });
+
+    function openHistory() {
+      renderHistoryList();
+      document.getElementById('drawerOverlay').classList.remove('hidden');
+      document.getElementById('historyDrawer').classList.remove('hidden');
+    }
+    function closeHistory() {
+      document.getElementById('drawerOverlay').classList.add('hidden');
+      document.getElementById('historyDrawer').classList.add('hidden');
+    }
+
+    function renderHistoryList() {
+      const hist = JSON.parse(localStorage.getItem('prediction_history') || '[]');
+      const list = document.getElementById('historyList');
+      document.getElementById('drawer-count').textContent = hist.length > 0 ? `(${hist.length})` : '';
+
+      if (hist.length === 0) {
+        list.innerHTML = `<div class="empty-state"><p>No prediction history yet.</p></div>`;
+        return;
+      }
+
+      list.innerHTML = hist.map((h, i) => `
+        <div class="hist-item">
+          <div class="hist-dot ${h.predicted_class === 'Pneumonia' ? 'pneumonia' : 'normal'}"></div>
+          <div class="hist-info" onclick="loadHistItem(${i})" style="cursor:pointer;flex:1">
+            <strong>${h.predicted_class}</strong>
+            <span>${(h.confidence * 100).toFixed(1)}% confidence · ${getRiskLabel(h)}</span>
+            <small>${h.filename || 'Unknown file'}</small>
+            <small>${new Date(h.timestamp).toLocaleString()}</small>
+          </div>
+          <button class="hist-delete-btn" onclick="deleteHistItem(${i})" title="Delete">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function loadHistItem(i) {
+      const hist = JSON.parse(localStorage.getItem('prediction_history') || '[]');
+      if (hist[i]) {
+        localStorage.setItem('last_prediction', JSON.stringify(hist[i]));
+        closeHistory();
+        location.reload();
+      }
+    }
+
+    function deleteHistItem(i) {
+      const hist  = JSON.parse(localStorage.getItem('prediction_history') || '[]');
+      const entry = hist[i];
+      if (!entry) return;
+      if (!confirm(`Delete this entry?\n${entry.predicted_class} — ${entry.filename || 'Unknown'}`)) return;
+      hist.splice(i, 1);
+      localStorage.setItem('prediction_history', JSON.stringify(hist));
+      syncHistoryBadge();
+      renderHistoryList();
+    }
+
+    function clearHistory() {
+      if (!confirm('Clear all prediction history? This cannot be undone.')) return;
+      localStorage.removeItem('prediction_history');
+      syncHistoryBadge();
+      renderHistoryList();
+    }
+
+    // Badge: always reflects current true count
+    function syncHistoryBadge() {
+      const hist  = JSON.parse(localStorage.getItem('prediction_history') || '[]');
+      const badge = document.getElementById('hist-badge');
+      if (!badge) return;
+      badge.textContent = hist.length;
+      badge.classList.toggle('hidden', hist.length === 0);
+    }
+
+    function logout() {
+      localStorage.setItem('remember_session', 'false');
+      localStorage.removeItem('access_token');
+      window.location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>

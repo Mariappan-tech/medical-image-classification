@@ -1,0 +1,17 @@
+ 
+_pycache_/
+*.pyc
+
+logs/
+gradcam_outputs/
+
+data set/
+*.npz
+*.csv
+events.out.tfevents*
+
+.venv/
+venv/
+.env
+
+.vscode/
