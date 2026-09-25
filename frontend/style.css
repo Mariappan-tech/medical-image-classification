@@ -503,23 +503,98 @@ input, select { font-family: inherit; }
 .conf-lbl { font-size: 0.65rem; color: rgba(255,255,255,0.6); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 
 /* Result grid */
-.result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem; }
+.result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem; align-items: stretch; }
 
-/* Detail list */
-.detail-list { display: flex; flex-direction: column; gap: 0; }
-.detail-row {
-  display: flex; align-items: center; gap: 0.75rem;
-  padding: 0.65rem 0;
-  border-bottom: 1px solid var(--slate-100);
-  font-size: 0.875rem;
+/* Left Side: Analyzed Chest X-Ray */
+.scan-preview-card {
+  display: flex;
+  flex-direction: column;
 }
-.detail-row:last-child { border-bottom: none; }
+.scan-img-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  min-height: 240px;
+  background: var(--slate-50);
+  border-radius: 12px;
+  border: 1px solid var(--slate-200);
+  overflow: hidden;
+}
+.scan-img-wrapper img {
+  max-height: 250px;
+  max-width: 100%;
+  border-radius: 8px;
+  object-fit: contain;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  transition: transform 0.2s ease;
+}
+.scan-img-wrapper img:hover {
+  transform: scale(1.02);
+}
+
+/* Right Side: Score & Confidence Breakdown */
+.conf-breakdown-card {
+  display: flex;
+  flex-direction: column;
+}
+.score-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.2rem;
+}
+.score-box {
+  background: var(--slate-50);
+  border: 1px solid var(--slate-200);
+  border-radius: 10px;
+  padding: 0.65rem 0.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.score-box-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--slate-500);
+  text-transform: uppercase;
+  letter-spacing: 0.35px;
+}
+.score-box-val {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--slate-800);
+  line-height: 1.2;
+}
+
+/* Bottom: Prediction Details (spans full width) */
+.result-detail-card {
+  grid-column: 1 / -1;
+}
+.result-detail-card .detail-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0.75rem;
+}
+.result-detail-card .detail-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--slate-50);
+  border: 1px solid var(--slate-200);
+  border-radius: 10px;
+  font-size: 0.85rem;
+}
 .detail-icon { font-size: 1rem; width: 24px; text-align: center; flex-shrink: 0; }
 .detail-label { flex: 1; color: var(--slate-500); font-weight: 500; }
 .detail-value { font-weight: 700; color: var(--slate-800); }
 
 /* Conf bars */
-.conf-bars { padding: 0.5rem 0; }
+.conf-bars { padding: 0.25rem 0; flex: 1; display: flex; flex-direction: column; justify-content: center; }
 .conf-bar-item { margin-bottom: 1rem; }
 .bar-header { display: flex; justify-content: space-between; margin-bottom: 0.4rem; font-size: 0.82rem; font-weight: 700; }
 .normal-label { color: var(--emerald); }
@@ -581,6 +656,7 @@ input, select { font-family: inherit; }
   .content-grid { grid-template-columns: 1fr; }
   .info-row { grid-template-columns: repeat(2, 1fr); }
   .result-grid { grid-template-columns: 1fr; }
+  .result-detail-card { grid-column: auto; }
 }
 @media (max-width: 768px) {
   :root { --sidebar-w: 0px; }
@@ -588,6 +664,7 @@ input, select { font-family: inherit; }
   .main-content { margin-left: 0; padding: 1.2rem; }
   .info-row { grid-template-columns: 1fr 1fr; }
   .verdict-banner { flex-direction: column; text-align: center; }
+  .score-summary-grid { grid-template-columns: 1fr; gap: 0.5rem; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
